@@ -49,9 +49,10 @@ html,body{height:100%;overflow:hidden;background:#EDE8E2;font-family:var(--sans)
 .tw-st{width:59px;height:104px;overflow:hidden;cursor:pointer;border:2px solid transparent;border-radius:2px;transition:all .15s;position:relative;background:#ccc;flex-shrink:0}
 .tw-sq:hover,.tw-st:hover{border-color:var(--gold-light)}
 .tw-sq.active,.tw-st.active{border-color:var(--gold)}
-.tw-sq .piece{transform:scale(.0963);transform-origin:top left}
-.tw-st .piece{transform:scale(.0546);transform-origin:top left}
-.tw-num{position:absolute;bottom:3px;right:4px;font-size:8px;color:rgba(255,255,255,.9);background:rgba(0,0,0,.45);padding:1px 4px;border-radius:1px;font-family:var(--sans);font-weight:500;pointer-events:none}
+/* piece divs are absolutely positioned inside the thumb wrapper so transforms work correctly */
+.tw-sq .piece{position:absolute;top:0;left:0;width:1080px;height:1080px;transform:scale(.0963);transform-origin:top left}
+.tw-st .piece{position:absolute;top:0;left:0;width:1080px;height:1920px;transform:scale(.0546);transform-origin:top left}
+.tw-num{position:absolute;bottom:3px;right:4px;font-size:8px;color:rgba(255,255,255,.9);background:rgba(0,0,0,.45);padding:1px 4px;border-radius:1px;font-family:var(--sans);font-weight:500;pointer-events:none;z-index:2}
 
 /* ── PANEL ───────────────────────────── */
 .panel{flex:1;overflow-y:auto;padding:28px 28px 28px 24px;display:flex;gap:24px;min-width:0}
@@ -64,10 +65,10 @@ html,body{height:100%;overflow:hidden;background:#EDE8E2;font-family:var(--sans)
 .preview-wrap{box-shadow:0 6px 28px rgba(0,0,0,.18);overflow:hidden;flex-shrink:0;background:#666;position:relative}
 /* Square preview: 486×486 (scale .45) */
 .preview-wrap.sq{width:486px;height:486px}
-.preview-wrap.sq .piece{transform:scale(.45);transform-origin:top left}
 /* Story preview: 273×486 (scale .2528) */
 .preview-wrap.st{width:273px;height:486px}
-.preview-wrap.st .piece{transform:scale(.2528);transform-origin:top left}
+/* Scaling is applied inline via JS — CSS selector can't target generated piece divs */
+#preview-canvas{position:absolute;top:0;left:0;width:0;height:0;overflow:visible}
 .preview-note{font-size:10px;color:var(--taupe);align-self:flex-start;line-height:1.5}
 
 /* Edit panel */
@@ -681,12 +682,12 @@ function selectPiece(id){
   const tw = document.getElementById('thumb-'+id);
   if(tw){ tw.classList.add('active'); tw.scrollIntoView({block:'nearest',behavior:'smooth'}); }
 
-  // Update preview
-  updatePreview();
-
-  // Update preview wrapper class
+  // Update preview wrapper class before rendering so sizes are correct
   const pw = document.getElementById('preview-wrap');
   pw.className = 'preview-wrap '+(piece.size==='story'?'st':'sq');
+
+  // Update preview
+  updatePreview();
 
   // Update title
   document.getElementById('preview-title').textContent = `#${piece.num} — ${piece.filename.replace('.png','')}`;
@@ -700,7 +701,15 @@ function updatePreview(){
   if(!currentId) return;
   const piece = pieces.find(p=>p.id===currentId);
   const html = renderPieceHTML(piece, currentFields, currentImages[currentId]||piece.images);
-  document.getElementById('preview-canvas').innerHTML = html;
+  const canvas = document.getElementById('preview-canvas');
+  canvas.innerHTML = html;
+  // Apply scale transform inline — CSS selectors can't target dynamically-generated piece divs
+  const el = canvas.firstElementChild;
+  if(el){
+    const scale = piece.size==='story' ? 0.2528 : 0.45;
+    el.style.transformOrigin = 'top left';
+    el.style.transform = `scale(${scale})`;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════
