@@ -528,7 +528,7 @@ const pieces = [
     filename:'carrusel-principal_lunes_05.png', size:'square',
     palette:'cream', images:[],
     fields:{headline:'Cuatro diseños.', headline2:'Un solo espacio.', sub:'Elige el tuyo o regálalo con gusto.', list:'Azul · Rosa · Mostaza · Verde salvia', cta:'Disponibles en Jaar · Pídelos por WhatsApp'},
-    render(f){return designOnlySq({bg:'#F5F0E8',headline:f.headline||this.fields.headline,headline2:f.headline2||this.fields.headline2,sub:f.sub||this.fields.sub,list:f.list||this.fields.list,cta:f.cta||this.fields.cta})}
+    render(f){return designOnlySq({bg:f._palBg||'#F5F0E8',textColor:f._palText||'#1C1714',accentColor:f._palAccent||'#C9A96E',headline:f.headline||this.fields.headline,headline2:f.headline2||this.fields.headline2,sub:f.sub||this.fields.sub,list:f.list||this.fields.list,cta:f.cta||this.fields.cta})}
   },
 
   /* ── POSTS INDIVIDUALES ── */
@@ -551,7 +551,7 @@ const pieces = [
     filename:'post_sabado_01.png', size:'square',
     palette:'sand', images:[],
     fields:{headline:'Una semana de', headline2:'objetos bien elegidos.', sub:'Cojines · Joyería · Gadgets · Organización', list:'', cta:'Todo disponible. Escríbenos.'},
-    render(f){return designOnlySq({bg:'#E8DDD0',headline:f.headline||this.fields.headline,headline2:f.headline2||this.fields.headline2,sub:f.sub||this.fields.sub,cta:f.cta||this.fields.cta,alignItems:'flex-start'})}
+    render(f){return designOnlySq({bg:f._palBg||'#E8DDD0',textColor:f._palText||'#1C1714',accentColor:f._palAccent||'#C9A96E',headline:f.headline||this.fields.headline,headline2:f.headline2||this.fields.headline2,sub:f.sub||this.fields.sub,cta:f.cta||this.fields.cta,alignItems:'flex-start'})}
   },
 
   /* ── CARRUSEL SECUNDARIO ── */
@@ -560,7 +560,7 @@ const pieces = [
     filename:'carrusel-secundario_miercoles_01.png', size:'square',
     palette:'rose', images:[],
     fields:{headline:'Cuando no sabes qué regalar,', headline2:'regala lo que tú misma querrías.', sub:'Guía de regalo · Jaar', cta:''},
-    render(f){return designOnlySq({bg:'#E8C4BC',headline:f.headline||this.fields.headline,headline2:f.headline2||this.fields.headline2,sub:f.sub||this.fields.sub,cta:f.cta||this.fields.cta,alignItems:'flex-start'})}
+    render(f){return designOnlySq({bg:f._palBg||'#E8C4BC',textColor:f._palText||'#1C1714',accentColor:f._palAccent||'#C9A96E',headline:f.headline||this.fields.headline,headline2:f.headline2||this.fields.headline2,sub:f.sub||this.fields.sub,cta:f.cta||this.fields.cta,alignItems:'flex-start'})}
   },
   {
     id:'cs-02', group:'carrusel-secundario', num:10, day:'Miércoles',
@@ -618,7 +618,7 @@ const pieces = [
     filename:'story_viernes_01.png', size:'story',
     palette:'coffee', images:[],
     fields:{headline:'Todo lo que', headline2:'Jaar eligió para ti.', sub:'Esta semana · Ya disponible.', cta:'Escríbenos por WhatsApp'},
-    render(f){return storyDesign({bg:'#2D2416',headline:f.headline||this.fields.headline,headline2:f.headline2||this.fields.headline2,sub:f.sub||this.fields.sub,cta:f.cta||this.fields.cta})}
+    render(f){return storyDesign({bg:f._palBg||'#2D2416',textColor:f._palText||'#FAF8F4',accentColor:f._palAccent||'#DFC28F',headline:f.headline||this.fields.headline,headline2:f.headline2||this.fields.headline2,sub:f.sub||this.fields.sub,cta:f.cta||this.fields.cta})}
   },
 ];
 
@@ -754,17 +754,12 @@ function buildPalette(piece){
 }
 
 function onPaletteChange(palKey, piece){
-  // Re-render with new palette hint — for design-only pieces, change bg
   const pal = PALETTES[palKey];
   piece.palette = palKey;
-  // If design-only, update background by rebuilding
-  const isDesign = piece.images.length===0;
-  if(isDesign){
-    // Inject palette bg into render — pass as field hack
-    currentFields._palBg = pal.bg;
-    currentFields._palText = pal.text;
-    currentFields._palAccent = pal.accent;
-  }
+  // Always inject palette values — design-only and copy-panel pieces use them
+  currentFields._palBg = pal.bg;
+  currentFields._palText = pal.text;
+  currentFields._palAccent = pal.accent;
   updatePreview();
   updateThumbnail(currentId);
   buildPalette(piece);
